@@ -1,63 +1,113 @@
-# nf-core/strelkasomatic: Usage
+# strelkasomatic: Usage
 
-## :warning: Please read this documentation on the nf-core website: [https://nf-co.re/strelkasomatic/usage](https://nf-co.re/strelkasomatic/usage)
-
-> _Documentation of pipeline parameters is generated automatically from the pipeline schema and can no longer be found in markdown files._
 
 ## Introduction
 
-<!-- TODO nf-core: Add documentation about anything specific to running your pipeline. For general topics, please point to (and add to) the main nf-core website. -->
 
 ## Samplesheet input
 
-You will need to create a samplesheet with information about the samples you would like to analyse before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 3 columns, and a header row as shown in the examples below.
+The input sample sheet should be either in a tab delimited format (extension must be .tsv), or comma delimited format (extension must be .csv), like [samplesheet.tsv](../assets/samplesheet.tsv). Your input should contain the following columns (column names must be accurate but no need to be in this order, redundant columns will be ignored)
+
+```tsv title="samplesheet.tsv"
+sample_id	match_normal_id	bam	bai	bam_match	bai_match
+PD47151n_lo0002	PD47151b	/path/to/PD47151n_lo0002.small.bam	/path/to/PD47151n_lo0002.small.bam.bai	/path/to/PD47151b.small.bam	/path/to/PD47151b.small.bam.bai
+PD52103n_lo0001	PD52103b	/path/to/PD52103n_lo0001.small.bam	/path/to/PD52103n_lo0001.small.bam.bai	/path/to/PD52103b.small.bam	/path/to/PD52103b.small.bam.bai
+```
 
 ```bash
 --input '[path to samplesheet file]'
 ```
 
-### Multiple runs of the same sample
-
-The `sample` identifiers have to be the same when you have re-sequenced the same sample more than once e.g. to increase sequencing depth. The pipeline will concatenate the raw reads before performing any downstream analysis. Below is an example for the same sample sequenced across 3 lanes:
-
-```csv title="samplesheet.csv"
-sample,fastq_1,fastq_2
-CONTROL_REP1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
-CONTROL_REP1,AEG588A1_S1_L003_R1_001.fastq.gz,AEG588A1_S1_L003_R2_001.fastq.gz
-CONTROL_REP1,AEG588A1_S1_L004_R1_001.fastq.gz,AEG588A1_S1_L004_R2_001.fastq.gz
-```
-
-### Full samplesheet
-
-The pipeline will auto-detect whether a sample is single- or paired-end using the information provided in the samplesheet. The samplesheet can have as many columns as you desire, however, there is a strict requirement for the first 3 columns to match those defined in the table below.
-
-A final samplesheet file consisting of both single- and paired-end data may look something like the one below. This is for 6 samples, where `TREATMENT_REP3` has been sequenced twice.
-
-```csv title="samplesheet.csv"
-sample,fastq_1,fastq_2
-CONTROL_REP1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
-CONTROL_REP2,AEG588A2_S2_L002_R1_001.fastq.gz,AEG588A2_S2_L002_R2_001.fastq.gz
-CONTROL_REP3,AEG588A3_S3_L002_R1_001.fastq.gz,AEG588A3_S3_L002_R2_001.fastq.gz
-TREATMENT_REP1,AEG588A4_S4_L003_R1_001.fastq.gz,
-TREATMENT_REP2,AEG588A5_S5_L003_R1_001.fastq.gz,
-TREATMENT_REP3,AEG588A6_S6_L003_R1_001.fastq.gz,
-TREATMENT_REP3,AEG588A6_S6_L004_R1_001.fastq.gz,
-```
 
 | Column    | Description                                                                                                                                                                            |
 | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sample`  | Custom sample name. This entry will be identical for multiple sequencing libraries/runs from the same sample. Spaces in sample names are automatically converted to underscores (`_`). |
-| `fastq_1` | Full path to FastQ file for Illumina short reads 1. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                             |
-| `fastq_2` | Full path to FastQ file for Illumina short reads 2. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                             |
+| `sample_id`  | sample ID, must be unique |
+| `match_normal_id` |  ID for your match normal sample |                                                            |
+| `bam` | bam file for `sample_id`, must exist |                                                       |
+| `bai` | tabix index file for `bam`, must exist |
+| `bam_match` | bam file for `match_normal_id`, must exist |
+| `bai_match` | tabix index file for `bam_match`, must exist |
 
-An [example samplesheet](../assets/samplesheet.csv) has been provided with the pipeline.
+
+
+
+## Other inputs
+
+| Input Parameters    | Description                                                                                                                                                                            |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| REQUIRED PARAMS (must not be null, ie if no default, need to be defined by users in `nextflow run`) |
+| `outdir`  | type: directory-path, The output directory where the results will be saved. You have to use absolute paths to storage on Cloud infrastructure |
+| REFERENCE GENOME REQUIRED PARAMS |
+| `fasta` | type: file-path, Path to FASTA genome file |
+| `fai` | type: file-path, Path to FASTA genome index (fa.fai) file. |
+| OPTIONAL PARAMS |
+| `image_cachedir`  | type: directory-path, /path/to/StrelkaSomatic/image if a container runtime profile or is enabled or conf/container.config is loaded, eg with --profile singularity |
+| `use_custom_genome` |  type: boolean, default: false, whether to use custom genome as specified in conf/custom_ref_genomes.config  |
+| `genome` | type: string, If using a reference genome configured in the pipeline using `--use_custom_genome true` (ie `conf/custom_ref_genomes.config` is loaded) or iGenomes, use this parameter to give the ID/label for the reference. This is then used to build the full paths for all required reference genome files e.g. `--genome GRCh38`.  |
+| `igenomes_ignore` | type: boolean, default: true, Do not load `igenomes.config` when running the pipeline. You may choose this option if you observe clashes between custom parameters and those supplied in `igenomes.config` |
+| `igenomes_base` | type: directory-path, default: "s3://ngi-igenomes/igenomes/", The base path to the igenomes reference files, ignored when `--igenomes-ignore` is enabled |
+| `custom_genome_base` | type: directory-path, default: null, The base path to the custom genome reference files (REQUIRED IF `--use_custom_genome true` AND if used to build the full path in the reference genome profile in [conf/custom_ref_genomes.config](conf/custom_ref_genomes.config)) |
+
+
+There are two ways to set up the REFERENCE GENOME REQUIRED PARAMS,
+
+1. Directly specify them in the nextflow command line (or `-params-file`)
+
+```bash
+
+nextflow run /path/to/StrelkaSomatic/main.nf \
+  --input ./samplesheet.tsv \
+  --outdir /path/to/outdir \
+  --fasta /path/to/reference/fasta \
+  --fai /path/to/reference/fasta
+```
+
+2. Set up a custom reference genome profile
+
+Edit the [conf/custom_ref_genomes.config](../conf/custom_ref_genomes/config) file (eg by fill in the `your_genome_label` section). "your_genome_label" is the name of the genome profile that you want to set up, specified by `--genome your_genome_label`. For each item under "your_genome_label", you can specify the path to the right file or directory. If they are all under one parent directory, you can use the `--custom_genome_base` parameter to build the full path (like in "GRCh38_full_analysis_set_plus_decoy_hla")
+
+You can then run the pipeline like this
+
+```bash
+
+nextflow run /path/to/StrelkaSomatic/main.nf \
+   -profile <docker/singularity/.../institute> \
+   --input /path/to/samplesheet.tsv \
+   --use_custom_genome true \
+   --genome genome_label_in_custom_genome_config \ #eg your_genome_label
+   --outdir /path/to/outdir
+```
+
+or like this if there's a `custom_genome_base` required
+
+```bash
+
+nextflow run /path/to/StrelkaSomatic/main.nf \
+   -profile <docker/singularity/.../institute> \
+   --input /path/to/samplesheet.tsv \
+   --use_custom_genome true \
+   --genome genome_label_in_custom_genome_config \ #eg your_genome_label
+   --custom_genome_base /path/to/custom/genome/directory \
+   --outdir /path/to/outdir
+```
+
+
+
 
 ## Running the pipeline
 
-The typical command for running the pipeline is as follows:
+You can specify a `-profile`  option as follows
 
 ```bash
-nextflow run nf-core/strelkasomatic --input ./samplesheet.csv --outdir ./results --genome GRCh37 -profile docker
+
+nextflow run /path/to/StrelkaSomatic/main.nf \
+   -profile <docker/singularity/.../institute> \
+   --input /path/to/samplesheet.tsv \
+   --use_custom_genome true \
+   --genome genome_label_in_custom_genome_config \ #eg your_genome_label
+   --custom_genome_base /path/to/custom/genome/directory \
+   --outdir /path/to/outdir \
+   -profile docker
 ```
 
 This will launch the pipeline with the `docker` configuration profile. See below for more information about profiles.
@@ -82,37 +132,37 @@ Do not use `-c <file>` to specify parameters as this will result in errors. Cust
 The above pipeline run specified with a params file in yaml format:
 
 ```bash
-nextflow run nf-core/strelkasomatic -profile docker -params-file params.yaml
+nextflow run sangersomatic -profile docker -params-file params.yaml
 ```
 
 with:
 
 ```yaml title="params.yaml"
-input: './samplesheet.csv'
+input: './samplesheet.tsv'
 outdir: './results/'
-genome: 'GRCh37'
+genome: 'GRCh38'
 <...>
 ```
 
-You can also generate such `YAML`/`JSON` files via [nf-core/launch](https://nf-co.re/launch).
 
 ### Updating the pipeline
 
 When you run the above command, Nextflow automatically pulls the pipeline code from GitHub and stores it as a cached version. When running the pipeline after this, it will always use the cached version if available - even if the pipeline has been updated since. To make sure that you're running the latest version of the pipeline, make sure that you regularly update the cached version of the pipeline:
 
 ```bash
-nextflow pull nf-core/strelkasomatic
+cd /path/to/StrelkaSomatic/dir
+git pull
 ```
 
 ### Reproducibility
 
 It is a good idea to specify a pipeline version when running the pipeline on your data. This ensures that a specific version of the pipeline code and software are used when you run your pipeline. If you keep using the same tag, you'll be running the same version of the pipeline, even if there have been changes to the code since.
 
-First, go to the [nf-core/strelkasomatic releases page](https://github.com/nf-core/strelkasomatic/releases) and find the latest pipeline version - numeric only (eg. `1.3.1`). Then specify this when running the pipeline with `-r` (one hyphen) - eg. `-r 1.3.1`. Of course, you can switch to another version by changing the number after the `-r` flag.
+<!-- First, go to the [nf-core/strelkasomatic releases page](https://github.com/nf-core/strelkasomatic/releases) and find the latest pipeline version - numeric only (eg. `1.3.1`). Then specify this when running the pipeline with `-r` (one hyphen) - eg. `-r 1.3.1`. Of course, you can switch to another version by changing the number after the `-r` flag.
 
 This version number will be logged in reports when you run the pipeline, so that you'll know what you used when you look back in the future. For example, at the bottom of the MultiQC reports.
 
-To further assist in reproducbility, you can use share and re-use [parameter files](#running-the-pipeline) to repeat pipeline runs with the same settings without having to write out a command with every single parameter.
+To further assist in reproducbility, you can use share and re-use [parameter files](#running-the-pipeline) to repeat pipeline runs with the same settings without having to write out a command with every single parameter. -->
 
 :::tip
 If you wish to share such profile (such as upload as supplementary material for academic publications), make sure to NOT include cluster specific paths to files, nor institutional specific profiles.
@@ -208,11 +258,3 @@ The Nextflow `-bg` flag launches Nextflow in the background, detached from your 
 Alternatively, you can use `screen` / `tmux` or similar tool to create a detached session which you can log back into at a later time.
 Some HPC setups also allow you to run nextflow within a cluster job submitted your job scheduler (from where it submits more jobs).
 
-## Nextflow memory requirements
-
-In some cases, the Nextflow Java virtual machines can start to request a large amount of memory.
-We recommend adding the following line to your environment to limit this (typically in `~/.bashrc` or `~./bash_profile`):
-
-```bash
-NXF_OPTS='-Xms1g -Xmx4g'
-```

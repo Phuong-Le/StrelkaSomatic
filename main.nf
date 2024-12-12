@@ -26,10 +26,9 @@ include { getGenomeAttribute      } from './subworkflows/local/utils_nfcore_stre
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-// TODO nf-core: Remove this line if you don't need a FASTA file
-//   This is an example of how to use getGenomeAttribute() to fetch parameters
-//   from igenomes.config using `--genome`
+// // fetch reference genome parameters if not specified separately through command line
 params.fasta = getGenomeAttribute('fasta')
+params.fai = getGenomeAttribute('fai')
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -44,17 +43,19 @@ workflow NFCORE_STRELKASOMATIC {
 
     take:
     samplesheet // channel: samplesheet read in from --input
+    fasta
+    fai
 
     main:
 
-    //
+
     // WORKFLOW: Run pipeline
-    //
     STRELKASOMATIC (
-        samplesheet
+        samplesheet,
+        fasta,
+        fai
     )
-    emit:
-    multiqc_report = STRELKASOMATIC.out.multiqc_report // channel: /path/to/multiqc_report.html
+
 }
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -81,7 +82,9 @@ workflow {
     // WORKFLOW: Run main workflow
     //
     NFCORE_STRELKASOMATIC (
-        PIPELINE_INITIALISATION.out.samplesheet
+        PIPELINE_INITIALISATION.out.samplesheet,
+        params.fasta,
+        params.fai
     )
     //
     // SUBWORKFLOW: Run completion tasks
@@ -93,7 +96,7 @@ workflow {
         params.outdir,
         params.monochrome_logs,
         params.hook_url,
-        NFCORE_STRELKASOMATIC.out.multiqc_report
+        null
     )
 }
 

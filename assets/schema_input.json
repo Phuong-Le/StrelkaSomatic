@@ -1,33 +1,51 @@
 {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$id": "https://raw.githubusercontent.com/nf-core/strelkasomatic/master/assets/schema_input.json",
-    "title": "nf-core/strelkasomatic pipeline - params.input schema",
+    "$id": "https://raw.githubusercontent.com/nf-core/sangersomatic/master/assets/schema_input.json",
+    "title": "nf-core/sangersomatic pipeline - params.input schema",
     "description": "Schema for the file provided with params.input",
     "type": "array",
     "items": {
         "type": "object",
         "properties": {
-            "sample": {
+            "sample_id": {
                 "type": "string",
                 "pattern": "^\\S+$",
                 "errorMessage": "Sample name must be provided and cannot contain spaces",
-                "meta": ["id"]
+                "description": "Sample ID, must be unique and cannot contain spaces",
+                "unique": true,
+                "meta": ["sample_id"]
             },
-            "fastq_1": {
+            "match_normal_id": {
+                "type": "string",
+                "pattern": "^\\S+$",
+                "errorMessage": "Match normal sample name must be provided and cannot contain spaces",
+                "description": "Match normal ID, cannot contain spaces",
+                "meta": ["match_normal_id"]
+            },
+            "bam": {
                 "type": "string",
                 "format": "file-path",
                 "exists": true,
-                "pattern": "^\\S+\\.f(ast)?q\\.gz$",
-                "errorMessage": "FastQ file for reads 1 must be provided, cannot contain spaces and must have extension '.fq.gz' or '.fastq.gz'"
+                "description": "bam file for the <sample_id> sample"
             },
-            "fastq_2": {
+            "bai": {
                 "type": "string",
                 "format": "file-path",
                 "exists": true,
-                "pattern": "^\\S+\\.f(ast)?q\\.gz$",
-                "errorMessage": "FastQ file for reads 2 cannot contain spaces and must have extension '.fq.gz' or '.fastq.gz'"
+                "description": "bam index (bam.bai) file for the <sample_id> sample"
+            },
+            "bam_match": {
+                "format": "file-path",
+                "exists": true,
+                "description": "bam file for the <match_normal_id> sample"
+            },
+            "bai_match": {
+                "type": "string",
+                "format": "file-path",
+                "exists": true,
+                "description": "bam index (bam.bai) file for the <sample_id> sample"
             }
         },
-        "required": ["sample", "fastq_1"]
+        "required": ["sample_id", "match_normal_id", "bam", "bai", "bam_match", "bai_match"]
     }
 }

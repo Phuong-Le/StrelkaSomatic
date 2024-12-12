@@ -4,7 +4,7 @@
     "title": "nf-core/strelkasomatic pipeline parameters",
     "description": "use strelka2 to call somatic mutations",
     "type": "object",
-    "$defs": {
+    "$definitions": {
         "input_output_options": {
             "title": "Input/output options",
             "type": "object",
@@ -17,10 +17,10 @@
                     "format": "file-path",
                     "exists": true,
                     "schema": "assets/schema_input.json",
-                    "mimetype": "text/csv",
-                    "pattern": "^\\S+\\.csv$",
+                    "mimetype": "text/csv/tsv",
+                    "pattern": ["^\\S+\\.csv$", "^\\S+\\.tsv$"],
                     "description": "Path to comma-separated file containing information about the samples in the experiment.",
-                    "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 3 columns, and a header row. See [usage docs](https://nf-co.re/strelkasomatic/usage#samplesheet-input).",
+                    "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 3 columns, and a header row. See [usage docs](https://nf-co.re/sangersomatic/usage#samplesheet-input).",
                     "fa_icon": "fas fa-file-csv"
                 },
                 "outdir": {
@@ -40,6 +40,26 @@
                     "type": "string",
                     "description": "MultiQC report title. Printed as page header, used for filename if not otherwise specified.",
                     "fa_icon": "fas fa-file-signature"
+                }
+            }
+        },
+        "pipeline_options": {
+            "title": "Options specific to this pipeline",
+            "type": "object",
+            "fa_icon": "fas fa-terminal",
+            "properties": {
+                "image_cachedir": {
+                    "type": "string",
+                    "format": "directory-path",
+                    "description": "Institutional/personal singularity or apptainer image cache directory",
+                    "hidden": true,
+                    "fa_icon": "fas fa-users-cog",
+                    "default": "$projectDir/image if a container runtime profile or is enabled or conf/container.config is loaded, eg with --profile singularity"
+                },
+                "use_custom_genome": {
+                    "type": "boolean",
+                    "description": "whether to use custom genome as specified in conf/custom_ref_genomes.config ",
+                    "default": false
                 }
             }
         },
@@ -79,6 +99,23 @@
                     "fa_icon": "fas fa-ban",
                     "hidden": true,
                     "default": "s3://ngi-igenomes/igenomes/"
+                },
+                "custom_genome_base": {
+                    "type": "string",
+                    "format": "directory-path",
+                    "description": "The base path to the custom genome reference files",
+                    "fa_icon": "fas fa-ban",
+                    "hidden": true,
+                    "default": "${projectDir}/data/custom_reference_genomes"
+                },
+                "fai": {
+                    "type": "string",
+                    "format": "file-path",
+                    "exists": true,
+                    "mimetype": "text/plain",
+                    "description": "Path to FASTA genome index (fa.fai) file.",
+                    "help_text": "This parameter is *mandatory* if `--genome` and `--custom_genome` is not specified.",
+                    "fa_icon": "far fa-file-code"
                 }
             }
         },
@@ -141,7 +178,7 @@
                     "type": "boolean",
                     "description": "Display version and exit.",
                     "fa_icon": "fas fa-question-circle",
-                    "hidden": true
+                    "hidden": false
                 },
                 "publish_dir_mode": {
                     "type": "string",
@@ -224,16 +261,19 @@
     },
     "allOf": [
         {
-            "$ref": "#/$defs/input_output_options"
+            "$ref": "#/$definitions/input_output_options"
         },
         {
-            "$ref": "#/$defs/reference_genome_options"
+            "$ref": "#/$definitions/reference_genome_options"
         },
         {
-            "$ref": "#/$defs/institutional_config_options"
+            "$ref": "#/$definitions/institutional_config_options"
         },
         {
-            "$ref": "#/$defs/generic_options"
+            "$ref": "#/$definitions/generic_options"
+        },
+        {
+            "$ref": "#/$definitions/pipeline_options"
         }
     ]
 }
