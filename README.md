@@ -102,7 +102,7 @@ fai=/path/to/fasta/index/genome.fa.fai
 config=/path/to/StrelkaSomatic/conf/sanger_lfs.config
 
 bsub -cwd $workdir -q long -o %J.o -e %J.e -R'span[hosts=1] select[mem>10000] rusage[mem=10000]' -M10000 -env "all" \
-    "nextflow run $script --input ${input} --outdir ${outdir} --fasta ${fasta} --fai ${fai} -resume"
+    "nextflow run ${script} -c ${config} --input ${input} --outdir ${outdir} --fasta ${fasta} --fai ${fai} -resume"
 ```
 
 or as follows
@@ -122,7 +122,7 @@ genome=GRCh38_full_analysis_set_plus_decoy_hla
 config=/path/to/StrelkaSomatic/conf/sanger_lfs.config
 
 bsub -cwd $workdir -q long -o %J.o -e %J.e -R'span[hosts=1] select[mem>10000] rusage[mem=10000]' -M10000 -env "all" \
-    "nextflow run $script --input ${input} --outdir ${outdir} --use_custom_genome ${use_custom_genome} --custom_genome_base ${custom_genome_base} --genome ${genome} -resume"
+    "nextflow run $script -c ${config} --input ${input} --outdir ${outdir} --use_custom_genome ${use_custom_genome} --custom_genome_base ${custom_genome_base} --genome ${genome} -resume"
 ```
 
 
